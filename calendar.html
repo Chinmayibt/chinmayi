@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event Calendar</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 40px;
+        background-color: #f4f4f9;
+        color: #333;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      h1 {
+        font-size: 160px;
+        color: #6a1b9a;
+        text-align: center;
+        margin-bottom: 80px;
+      }
+
+      .calendar-container {
+        width: 100%;
+        max-width: 1800px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: background-color 0.3s;
+      }
+
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 60px;
+        background-color: #6a1b9a;
+        color: white;
+        transition: background-color 0.3s;
+      }
+
+      .calendar-header button {
+        background: #7e57c2;
+        color: white;
+        border: none;
+        padding: 40px;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 44px;
+      }
+
+      .calendar-header button:hover {
+        background-color: #5e35b1;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-gap: 40px;
+        padding: 60px;
+        transition: background-color 0.3s;
+      }
+
+      .weekday,
+      .day {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 240px;
+        font-size: 48px;
+        font-weight: bold;
+      }
+
+      .weekday {
+        color: #fff;
+        background-color: #7e57c2;
+        border-radius: 12px;
+      }
+
+      .day {
+        background: #f0f0f0;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .day:hover {
+        background-color: #ab47bc;
+        transform: scale(1.1);
+      }
+
+      .event {
+        background-color: #6a1b9a;
+        color: white;
+        padding: 24px;
+        border-radius: 12px;
+        font-size: 32px;
+        position: absolute;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        box-sizing: border-box;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 80px;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        width: 500px;
+        text-align: center;
+        transition: background-color 0.3s;
+      }
+
+      .modal input {
+        width: 100%;
+        padding: 30px;
+        margin: 30px 0;
+        border: 3px solid #ccc;
+        border-radius: 12px;
+        font-size: 32px;
+      }
+
+      .modal button {
+        background: #6a1b9a;
+        color: white;
+        padding: 40px;
+        border-radius: 16px;
+        border: none;
+        cursor: pointer;
+        font-size: 36px;
+        width: 100%;
+        margin-top: 30px;
+        transition: background-color 0.3s;
+      }
+
+      .modal button:hover {
+        background-color: #7e57c2;
+      }
+
+      .modal .cancel {
+        background: #ccc;
+        color: black;
+      }
+
+      .modal .cancel:hover {
+        background-color: #bdbdbd;
+      }
+
+      .dark-mode {
+        background-color: #333;
+        color: #fff;
+      }
+
+      .dark-mode .calendar-header {
+        background-color: #444;
+      }
+
+      .dark-mode .calendar-grid {
+        background-color: #555;
+      }
+
+      .dark-mode .day {
+        background: #444;
+      }
+
+      .dark-mode .event {
+        background-color: #333;
+      }
+
+      .dark-mode .modal {
+        background-color: #444;
+        color: #fff;
+      }
+
+      .dark-mode button {
+        background-color: #444;
+        color: #fff;
+      }
+
+      .dark-mode button:hover {
+        background-color: #555;
+      }
+
+      .dark-mode .modal .cancel {
+        background-color: #666;
+      }
+
+      @media (max-width: 1400px) {
+        h1 {
+          font-size: 120px;
+        }
+
+        .calendar-container {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 1100px) {
+        h1 {
+          font-size: 100px;
+        }
+
+        .calendar-header button {
+          font-size: 32px;
+          padding: 30px;
+        }
+
+        .calendar-grid {
+          grid-template-columns: repeat(7, 1fr);
+          grid-gap: 30px;
+          padding: 40px;
+        }
+
+        .weekday,
+        .day {
+          height: 160px;
+          font-size: 40px;
+        }
+
+        .event {
+          font-size: 28px;
+          padding: 20px;
+        }
+      }
+      #monthYear {
+        font-size: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Event Calendar</h1>
+
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button onclick="changeMonth(-1)">&#10094;</button>
+        <div id="monthYear">January 2025</div>
+        <button onclick="changeMonth(1)">&#10095;</button>
+      </div>
+
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </div>
+
+    <div class="modal" id="eventModal">
+      <h2>Add Event</h2>
+      <input type="text" id="eventInput" placeholder="Event Details" />
+      <button onclick="saveEvent()">Save Event</button>
+      <button onclick="closeModal()" class="cancel">Cancel</button>
+    </div>
+
+    <button
+      onclick="toggleDarkMode()"
+      style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 20px;
+        background: #6a1b9a;
+        color: white;
+        font-size: 30px;
+        border-radius: 12px;
+        cursor: pointer;
+      "
+    >
+      🌙
+    </button>
+
+    <script>
+      const modal = document.getElementById("eventModal");
+      const eventInput = document.getElementById("eventInput");
+      const monthYear = document.getElementById("monthYear");
+      const calendarGrid = document.getElementById("calendarGrid");
+      const body = document.body;
+      let selectedDay;
+
+      const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      let currentMonth = new Date().getMonth();
+      let currentYear = new Date().getFullYear();
+
+      function generateCalendar() {
+        monthYear.innerText = `${months[currentMonth]} ${currentYear}`;
+        calendarGrid.innerHTML = "";
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const numDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+        weekdays.forEach((day) => {
+          let weekdayDiv = document.createElement("div");
+          weekdayDiv.classList.add("weekday");
+          weekdayDiv.innerText = day;
+          calendarGrid.appendChild(weekdayDiv);
+        });
+
+        for (let i = 0; i < firstDay; i++) {
+          let emptyCell = document.createElement("div");
+          calendarGrid.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= numDays; day++) {
+          let dayCell = document.createElement("div");
+          dayCell.classList.add("day");
+          dayCell.innerText = day;
+          dayCell.onclick = () => openModal(dayCell);
+          calendarGrid.appendChild(dayCell);
+        }
+      }
+
+      function openModal(day) {
+        selectedDay = day;
+        modal.style.display = "block";
+        eventInput.value = "";
+      }
+
+      function closeModal() {
+        modal.style.display = "none";
+      }
+
+      function saveEvent() {
+        if (eventInput.value.trim()) {
+          let eventDiv = document.createElement("div");
+          eventDiv.classList.add("event");
+          eventDiv.innerText = eventInput.value;
+          selectedDay.appendChild(eventDiv);
+        }
+        closeModal();
+      }
+
+      function changeMonth(direction) {
+        currentMonth += direction;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        } else if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        generateCalendar();
+      }
+
+      function toggleDarkMode() {
+        body.classList.toggle("dark-mode");
+      }
+
+      generateCalendar();
+    </script>
+  </body>
+</html>
